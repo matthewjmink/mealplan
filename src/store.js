@@ -1,16 +1,51 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import { vuexfireMutations, firestoreAction } from 'vuexfire';
+import { db } from './db';
 
 Vue.use(Vuex);
 
+const excludeId = function stripIdParamFromObject(obj) {
+  const { id, ...newObj } = obj;
+  return newObj;
+};
+
 export default new Vuex.Store({
   state: {
-
+    recipes: [],
+    ingredients: [],
   },
+
   mutations: {
-
+    ...vuexfireMutations,
   },
-  actions: {
 
+  actions: {
+    bindIngredients: firestoreAction(({ bindFirestoreRef }) => bindFirestoreRef('ingredients', db.collection('ingredients'))),
+
+    addIngredient: firestoreAction((context, ingredient) => db.collection('ingredients').add(excludeId(ingredient))),
+
+    bindRecipes: firestoreAction(({ bindFirestoreRef }) => bindFirestoreRef('recipes', db.collection('recipes'))),
+
+    bindRecipe: firestoreAction(({ bindFirestoreRef }, recipeId) => bindFirestoreRef('recipes',
+      db.collection('recipes').doc(recipeId))),
+
+    addRecipe: firestoreAction(async (context, { recipe, ingredients }) => {
+      const batch = db.batch();
+      const recipeDocRef = db.collection('recipes').doc();
+      batch.set(recipeDocRef, excludeId(recipe));
+      ingredients.forEach((ingredient) => {
+        const { ingredient: ingredientId, ...ingredientProps } = ingredient;
+        const ingredientDocRef = recipeDocRef.collection('ingredients').doc();
+        batch.set(ingredientDocRef, {
+          ingredient: db.collection('ingredients').doc(ingredientId),
+          ...ingredientProps,
+        });
+      });
+      return batch.commit();
+    }),
+
+    bindRecipeIngredients: firestoreAction(({ bindFirestoreRef }, recipeId) => bindFirestoreRef(`recipes/${recipeId}/ingredients`,
+      db.collection('ingredients'))),
   },
 });

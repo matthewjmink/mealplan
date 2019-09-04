@@ -1,29 +1,34 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+  <div id="app" class="container">
+    <div id="nav" class="nav nav-pills">
+      <li class="nav-item">
+        <router-link :class="['nav-link', { active: $route.name === 'plan'}]"
+            to="/">Plan</router-link>
+      </li>
+      <li class="nav-item">
+        <router-link :class="['nav-link', { active: $route.name === 'recipes'}]"
+            to="/recipes">Recipes</router-link>
+      </li>
     </div>
     <router-view/>
   </div>
 </template>
 
+<script>
+export default {
+  name: 'App',
+  created() {
+    this.$store.dispatch('bindIngredients');
+  },
+};
+</script>
+
 <style lang="scss">
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+@import '~bootstrap/dist/css/bootstrap.css';
+.font-size-sm {
+  font-size: .8rem;
 }
-#nav {
-  padding: 30px;
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+.font-size-lg {
+  font-size: 1.2rem;
 }
 </style>
