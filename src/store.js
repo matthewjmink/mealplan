@@ -27,9 +27,6 @@ export default new Vuex.Store({
 
     bindRecipes: firestoreAction(({ bindFirestoreRef }) => bindFirestoreRef('recipes', db.collection('recipes'))),
 
-    bindRecipe: firestoreAction(({ bindFirestoreRef }, recipeId) => bindFirestoreRef('recipes',
-      db.collection('recipes').doc(recipeId))),
-
     addRecipe: firestoreAction(async (context, { recipe, ingredients }) => {
       const batch = db.batch();
       const recipeDocRef = db.collection('recipes').doc();
@@ -44,8 +41,5 @@ export default new Vuex.Store({
       });
       return batch.commit();
     }),
-
-    bindRecipeIngredients: firestoreAction(({ bindFirestoreRef }, recipeId) => bindFirestoreRef(`recipes/${recipeId}/ingredients`,
-      db.collection('ingredients'))),
   },
 });

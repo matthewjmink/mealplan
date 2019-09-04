@@ -38,20 +38,18 @@
         <li v-for="(ingredient, index) in selectedIngredients" :key="ingredient.ingredient">
           <div class="d-flex">
             <div class="mb-1 mr-3">
-              <input type="text" class="form-control form-control-sm quantity-input" v-model="localIngredients[index].amount">
+              <input type="number"
+                    min="0"
+                    step="1"
+                    class="form-control form-control-sm quantity-input"
+                    v-model.number="localIngredients[index].quantity">
               <label class="font-size-sm form-text text-muted mb-0">Quantity</label>
             </div>
             <div class="mb-1 mr-3">
               <select class="form-control form-control-sm" v-model="localIngredients[index].measure">
-                <option value="Tbsp">Tbsp</option>
-                <option value="tsp">tsp</option>
-                <option value="cups">cups</option>
-                <option value="oz">oz</option>
-                <option value="pounds">pounds</option>
-                <option value="cans">cans</option>
-                <option value="boxes">boxes</option>
-                <option value="jars">jars</option>
-                <option value="pinches">pinches</option>
+                <option v-for="(measure, key) in measures" :value="key" :key="key">
+                    {{ measureAbbr(key, localIngredients[index].quantity) }}
+                </option>
               </select>
               <label class="font-size-sm form-text text-muted mb-0">Measure</label>
             </div>
@@ -81,6 +79,7 @@
 
 <script>
 import Typeahead from './typeahead/Typeahead.vue';
+import measuresMixin from '@/mixins/measures';
 
 export default {
   name: 'RecipeForm',
@@ -99,6 +98,7 @@ export default {
     },
   },
   components: { Typeahead },
+  mixins: [measuresMixin],
   data() {
     return {
       localRecipe: {
@@ -134,7 +134,7 @@ export default {
       this.localIngredients.push({
         ingredient: id,
         measure: null,
-        amount: null,
+        quantity: null,
       });
       this.ingredientSearch = '';
     },
@@ -152,6 +152,6 @@ export default {
 
 <style lang="scss" scoped>
 .quantity-input {
-  width: 50px;
+  width: 75px;
 }
 </style>
