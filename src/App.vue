@@ -6,7 +6,7 @@
             to="/">Plan</router-link>
       </li>
       <li class="nav-item">
-        <router-link :class="['nav-link', { active: $route.name === 'recipes'}]"
+        <router-link :class="['nav-link', { active: ['recipes', 'recipe'].includes($route.name)}]"
             to="/recipes">Recipes</router-link>
       </li>
     </div>
