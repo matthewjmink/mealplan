@@ -3,7 +3,7 @@
     <h1>{{ recipe.name }}</h1>
     <h2>Ingredients</h2>
     <ul class="ingredient-list">
-        <li v-for="ingredient in ingredients" :key="ingredient.id">
+        <li v-for="ingredient in selectedIngredients" :key="ingredient.id">
             {{ ingredient.quantity }} {{ measureAbbr(ingredient.measure, ingredient.quantity) }} {{ ingredient.name }}
         </li>
     </ul>
@@ -25,6 +25,14 @@ export default {
       ingredients: [],
     };
   },
+  computed: {
+    selectedIngredients() {
+      return this.ingredients.map((ingredient) => {
+        const { name } = this.$store.state.ingredients.find(({ id }) => ingredient.ingredient === id);
+        return { ...ingredient, name };
+      });
+    },
+  },
   methods: {
     save(recipe) {
       return this.$store.dispatch('editRecipe', recipe);
@@ -40,11 +48,11 @@ export default {
     db.collection(`recipes/${recipeId}/ingredients`)
       .onSnapshot((ingredientCollection) => {
         this.ingredients = ingredientCollection.docs.map((snapshot) => {
-          const { ingredient: ingredientRef, ...ingredientObj } = snapshot.data();
+          const { ingredient: ingredientRef, measure, quantity } = snapshot.data();
           return {
-            id: ingredientRef.id,
-            name: this.$store.state.ingredients.find(({ id }) => id === ingredientRef.id).name,
-            ...ingredientObj,
+            ingredient: ingredientRef.id,
+            measure,
+            quantity,
           };
         });
       });
