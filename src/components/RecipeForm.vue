@@ -73,11 +73,32 @@
         </li>
       </ul>
     </div>
+      <div>
+        <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
+          <div>
+            <button :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
+              Bold
+            </button>
+            <button :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
+              List
+            </button>
+          </div>
+        </editor-menu-bar>
+        <editor-content class="form-control" :editor="editor" />
+      </div>
     <button class="btn btn-outline-primary">Save Recipe</button>
   </form>
 </template>
 
 <script>
+import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
+import {
+  OrderedList,
+  ListItem,
+  Bold,
+  Italic,
+  Underline,
+} from 'tiptap-extensions';
 import Typeahead from './typeahead/Typeahead.vue';
 import measuresMixin from '@/mixins/measures';
 
@@ -97,7 +118,7 @@ export default {
       },
     },
   },
-  components: { Typeahead },
+  components: { Typeahead, EditorContent, EditorMenuBar },
   mixins: [measuresMixin],
   data() {
     return {
@@ -110,6 +131,20 @@ export default {
       },
       localIngredients: [],
       ingredientSearch: '',
+      editor: new Editor({
+        extensions: [
+          new OrderedList(),
+          new ListItem(),
+          new Bold(),
+          new Italic(),
+          new Underline(),
+        ],
+        content: `
+          <ol>
+            <li></li>
+          </ol>
+        `,
+      }),
     };
   },
   computed: {
@@ -146,6 +181,9 @@ export default {
   created() {
     Object.assign(this, this.recipe);
     this.localIngredients = this.ingredients.slice();
+  },
+  beforeDestroy() {
+    this.editor.destroy();
   },
 };
 </script>
