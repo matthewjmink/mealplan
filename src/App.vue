@@ -24,11 +24,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import '~bootstrap/dist/css/bootstrap.css';
-.font-size-sm {
-  font-size: .8rem;
-}
-.font-size-lg {
-  font-size: 1.2rem;
-}
+@import '~@/scss/config';
+@import '~bootstrap/scss/bootstrap';
+@import '~@/scss/base';
 </style>
