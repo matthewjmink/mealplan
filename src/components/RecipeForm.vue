@@ -33,7 +33,7 @@
           :placeholder="localRecipe.refType === 'Website' ? 'URL' : 'page number'">
     </div>
     <div class="form-group">
-      <label for="sourcePage">Ingredients</label>
+      <label>Ingredients</label>
       <ul>
         <li v-for="(ingredient, index) in selectedIngredients" :key="ingredient.ingredient">
           <div class="d-flex">
@@ -73,32 +73,17 @@
         </li>
       </ul>
     </div>
-      <div>
-        <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
-          <div>
-            <button :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
-              Bold
-            </button>
-            <button :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
-              List
-            </button>
-          </div>
-        </editor-menu-bar>
-        <editor-content class="form-control" :editor="editor" />
-      </div>
+    <div class="form-group">
+      <label>Directions</label>
+      <editor-content class="rich-text" :editor="editor" />
+    </div>
     <button class="btn btn-outline-primary">Save Recipe</button>
   </form>
 </template>
 
 <script>
-import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
-import {
-  OrderedList,
-  ListItem,
-  Bold,
-  Italic,
-  Underline,
-} from 'tiptap-extensions';
+import { Editor, EditorContent } from 'tiptap';
+import { OrderedList, ListItem } from 'tiptap-extensions';
 import Typeahead from './typeahead/Typeahead.vue';
 import measuresMixin from '@/mixins/measures';
 
@@ -118,7 +103,7 @@ export default {
       },
     },
   },
-  components: { Typeahead, EditorContent, EditorMenuBar },
+  components: { Typeahead, EditorContent },
   mixins: [measuresMixin],
   data() {
     return {
@@ -128,6 +113,7 @@ export default {
         refName: '',
         refPage: '',
         refType: '',
+        directions: '',
       },
       localIngredients: [],
       ingredientSearch: '',
@@ -135,15 +121,11 @@ export default {
         extensions: [
           new OrderedList(),
           new ListItem(),
-          new Bold(),
-          new Italic(),
-          new Underline(),
         ],
-        content: `
-          <ol>
-            <li></li>
-          </ol>
-        `,
+        content: '<p></p>',
+        onUpdate: ({ getHTML }) => {
+          this.$set(this.localRecipe, 'directions', getHTML());
+        },
       }),
     };
   },
@@ -189,7 +171,71 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '~@/scss/config';
+@import '~@/scss/mixins';
+
 .quantity-input {
   width: 75px;
+}
+.editor-menu {
+  background: #eee;
+  padding: 8px;
+
+  button {
+    margin-right: 5px;
+  }
+}
+::v-deep .ProseMirror {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow-y: scroll;
+  resize: vertical;
+  min-height: 64px;
+  padding: $input-padding-y $input-padding-x;
+  font-family: $input-font-family;
+  @include font-size($input-font-size);
+  font-weight: $input-font-weight;
+  line-height: $input-line-height;
+  color: $input-color;
+  background-color: $input-bg;
+  background-clip: padding-box;
+  border: $input-border-width solid $input-border-color;
+
+  // Note: This has no effect on <select>s in some browsers, due to the limited stylability of `<select>`s in CSS.
+  @include border-radius($input-border-radius, 0);
+
+  @include box-shadow($input-box-shadow);
+  @include transition($input-transition);
+
+  // Unstyle the caret on `<select>`s in IE10+.
+  &::-ms-expand {
+    background-color: transparent;
+    border: 0;
+  }
+
+  // Customize the `:focus` state to imitate native WebKit styles.
+  @include form-control-focus();
+
+  // Placeholder
+  &::placeholder {
+    color: $input-placeholder-color;
+    // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526.
+    opacity: 1;
+  }
+
+  // Disabled and read-only inputs
+  //
+  // HTML5 says that controls under a fieldset > legend:first-child won't be
+  // disabled if the fieldset is disabled. Due to implementation difficulty, we
+  // don't honor that edge case; we style them as disabled anyway.
+  &:disabled,
+  &[readonly] {
+    background-color: $input-disabled-bg;
+    // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
+    opacity: 1;
+  }
+
+  @include p-list;
 }
 </style>

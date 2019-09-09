@@ -1,0 +1,17 @@
+@mixin p-list {
+  counter-reset: directions-counter;
+  
+  p {
+    position: relative;
+    padding-left: 20px;
+  }
+
+  p::before {
+    counter-increment: directions-counter;
+    content: counter(directions-counter) '.';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}

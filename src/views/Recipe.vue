@@ -7,6 +7,8 @@
             {{ ingredient.quantity }} {{ measureAbbr(ingredient.measure, ingredient.quantity) }} {{ ingredient.name }}
         </li>
     </ul>
+    <h2>Directions</h2>
+    <div v-html="recipe.directions"></div>
   </div>
 </template>
 
