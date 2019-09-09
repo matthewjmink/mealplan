@@ -1,83 +1,94 @@
 <template>
   <form @submit.prevent="saveRecipe">
-    <div class="form-group">
-      <label for="recipeName">Recipe Name</label>
-      <input v-model="localRecipe.name"
-          type="text"
-          class="form-control"
-          id="recipeName">
-    </div>
-    <div class="form-group">
-      <label for="sourceType">Source Type</label>
-      <select v-model="localRecipe.refType"
-          class="form-control"
-          id="sourceType">
-        <option value="Book">Book</option>
-        <option value="Website">Website</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label for="sourceName">Source Name</label>
-      <input v-model="localRecipe.refName"
-          type="text"
-          class="form-control"
-          id="sourceName"
-          :placeholder="localRecipe.refType === 'Website' ? 'AllRecipes.com' : 'Trim Healthy Table'">
-    </div>
-    <div class="form-group">
-      <label for="sourcePage">Page</label>
-      <input v-model="localRecipe.refPage"
-          type="text"
-          class="form-control"
-          id="sourcePage"
-          :placeholder="localRecipe.refType === 'Website' ? 'URL' : 'page number'">
-    </div>
-    <div class="form-group">
-      <label>Ingredients</label>
-      <ul>
-        <li v-for="(ingredient, index) in selectedIngredients" :key="ingredient.ingredient">
-          <div class="d-flex">
-            <div class="mb-1 mr-3">
-              <input type="number"
-                    min="0"
-                    step="1"
-                    class="form-control form-control-sm quantity-input"
-                    v-model.number="localIngredients[index].quantity">
-              <label class="font-size-sm form-text text-muted mb-0">Quantity</label>
-            </div>
-            <div class="mb-1 mr-3">
-              <select class="form-control form-control-sm" v-model="localIngredients[index].measure">
-                <option v-for="(measure, key) in measures" :value="key" :key="key">
-                    {{ measureAbbr(key, localIngredients[index].quantity) }}
-                </option>
-              </select>
-              <label class="font-size-sm form-text text-muted mb-0">Measure</label>
-            </div>
-            <strong>{{ ingredient.name }}</strong>
+    <div class="row">
+      <div class="col-sm-6 mb-3">
+        <div class="form-group">
+          <label for="recipeName">Recipe Name</label>
+          <input v-model="localRecipe.name"
+              type="text"
+              class="form-control"
+              id="recipeName">
+        </div>
+        <div class="form-group">
+          <label>Ingredients</label>
+          <ul>
+            <li v-for="(ingredient, index) in selectedIngredients" :key="ingredient.ingredient">
+              <div class="d-flex">
+                <div class="mb-1 mr-3">
+                  <input type="number"
+                        min="0"
+                        step="1"
+                        class="form-control form-control-sm quantity-input"
+                        v-model.number="localIngredients[index].quantity">
+                  <label class="font-size-sm form-text text-muted mb-0">Quantity</label>
+                </div>
+                <div class="mb-1 mr-3">
+                  <select class="form-control form-control-sm" v-model="localIngredients[index].measure">
+                    <option v-for="(measure, key) in measures" :value="key" :key="key">
+                        {{ measureAbbr(key, localIngredients[index].quantity) }}
+                    </option>
+                  </select>
+                  <label class="font-size-sm form-text text-muted mb-0">Measure</label>
+                </div>
+                <strong>{{ ingredient.name }}</strong>
+              </div>
+            </li>
+            <li>
+              <typeahead v-model="ingredientSearch"
+                  placeholder="Search for an ingredient..."
+                  ref="typeahead"
+                  :clear-on-select="true"
+                  :data="ingredientList"
+                  :serializer="s => s.name"
+                  @no-match="addNewIngredient"
+                  @hit="selectIngredient">
+                <template slot="listPrepend">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" @click="addNewIngredient">
+                    Save ingredient: "{{ ingredientSearch }}"</button>
+                </template>
+              </typeahead>
+            </li>
+          </ul>
+        </div>
+        <div class="form-group">
+          <label>Directions</label>
+          <editor-content class="rich-text" :editor="editor" />
+        </div>
+        <button class="btn btn-primary d-none d-sm-inline-block">Save Recipe</button>
+      </div>
+      <!-- Reference Info -->
+      <div class="col-sm-6 mb-3">
+        <fieldset>
+          <legend>Reference Info (optional)</legend>
+          <div class="form-group">
+            <label for="sourceType">Source Type</label>
+            <select v-model="localRecipe.refType"
+                class="form-control"
+                id="sourceType">
+              <option value="Book">Book</option>
+              <option value="Website">Website</option>
+            </select>
           </div>
-        </li>
-        <li>
-          <typeahead v-model="ingredientSearch"
-              placeholder="Search for an ingredient..."
-              ref="typeahead"
-              :clear-on-select="true"
-              :data="ingredientList"
-              :serializer="s => s.name"
-              @no-match="addNewIngredient"
-              @hit="selectIngredient">
-            <template slot="listPrepend">
-              <button type="button" class="btn btn-outline-secondary btn-sm" @click="addNewIngredient">
-                Save ingredient: "{{ ingredientSearch }}"</button>
-            </template>
-          </typeahead>
-        </li>
-      </ul>
+          <div class="form-group">
+            <label for="sourceName">Source Name</label>
+            <input v-model="localRecipe.refName"
+                type="text"
+                class="form-control"
+                id="sourceName"
+                :placeholder="localRecipe.refType === 'Website' ? 'AllRecipes.com' : 'Trim Healthy Table'">
+          </div>
+          <div class="form-group">
+            <label for="sourcePage">Page</label>
+            <input v-model="localRecipe.refPage"
+                type="text"
+                class="form-control"
+                id="sourcePage"
+                :placeholder="localRecipe.refType === 'Website' ? 'URL' : 'page number'">
+          </div>
+        </fieldset>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Directions</label>
-      <editor-content class="rich-text" :editor="editor" />
-    </div>
-    <button class="btn btn-outline-primary">Save Recipe</button>
+    <button class="btn btn-primary d-sm-none">Save Recipe</button>
   </form>
 </template>
 
