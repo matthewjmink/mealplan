@@ -41,5 +41,7 @@ export default new Vuex.Store({
       });
       return batch.commit();
     }),
+
+    addPlanRecipe: firestoreAction((context, planRecipe) => db.collection('plan-recipes').add(excludeId(planRecipe))),
   },
 });

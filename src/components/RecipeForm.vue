@@ -1,5 +1,6 @@
 <template>
   <form @submit.prevent="saveRecipe">
+    <h2>{{ recipe && recipe.id ? 'Edit' : 'New' }} Recipe</h2>
     <div class="row">
       <div class="col-sm-6 mb-3">
         <div class="form-group">
@@ -65,6 +66,7 @@
             <select v-model="localRecipe.refType"
                 class="form-control"
                 id="sourceType">
+              <option value=""></option>
               <option value="Book">Book</option>
               <option value="Website">Website</option>
             </select>
@@ -133,7 +135,7 @@ export default {
           new OrderedList(),
           new ListItem(),
         ],
-        content: '<p></p>',
+        content: this.recipe.directions || '<p></p>',
         onUpdate: ({ getHTML }) => {
           this.$set(this.localRecipe, 'directions', getHTML());
         },
@@ -168,6 +170,7 @@ export default {
     },
     async addNewIngredient() {
       const ingredient = await this.$store.dispatch('addIngredient', { name: this.ingredientSearch });
+      this.ingredientSearch = '';
       this.selectIngredient(this.$store.state.ingredients.find(({ id }) => id === ingredient.id));
     },
   },
@@ -200,9 +203,9 @@ export default {
   display: block;
   width: 100%;
   height: auto;
-  overflow-y: scroll;
+  overflow-y: auto;
   resize: vertical;
-  min-height: 64px;
+  min-height: 128px;
   padding: $input-padding-y $input-padding-x;
   font-family: $input-font-family;
   @include font-size($input-font-size);

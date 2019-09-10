@@ -1,7 +1,6 @@
 <template>
   <div>
-    <h1>Recipes</h1>
-    <recipe-form @submit="addRecipe" />
+    <h1>Recipes <button class="btn btn-sm btn-primary" type="button" @click="addingRecipe = true" >New Recipe</button></h1>
     <div class="d-flex flex-wrap">
       <router-link v-for="recipe in recipes"
           :to="{ name: 'recipe', params: { id: recipe.id } }"
@@ -12,6 +11,7 @@
         </div>
       </router-link>
     </div>
+    <recipe-form :class="['slide-up', { in: addingRecipe }]" @submit="addRecipe" />
   </div>
 </template>
 
@@ -21,6 +21,11 @@ import RecipeForm from '@/components/RecipeForm.vue';
 export default {
   name: 'Recipes',
   components: { RecipeForm },
+  data() {
+    return {
+      addingRecipe: false,
+    };
+  },
   computed: {
     recipes() {
       return this.$store.state.recipes;

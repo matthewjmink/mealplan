@@ -2,9 +2,15 @@ $line-height-base: 1.6;
 $font-weight-normal: 300;
 $font-family-sans-serif: "Open Sans",-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
-$primary: rgb(68, 173, 173);
+$brand-color-1: #44adad;
+$brand-color-2: #ffeabb;
+$brand-color-3: #ff548e;
+
+$primary: $brand-color-1;
+$secondary: $brand-color-3;
 
 $body-color: #333333;
+$body-bg: lighten($brand-color-2, 10);
 $input-placeholder-color: #bbbbbb;
 
 @import '~bootstrap/scss/functions';

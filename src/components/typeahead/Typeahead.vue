@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="typeahead">
     <div :class="sizeClasses">
       <div ref="prependDiv" v-if="$slots.prepend || prepend" class="input-group-prepend">
         <slot name="prepend">
@@ -46,6 +46,9 @@
           <slot name="suggestion" v-bind="{ data, htmlText }" />
         </template>
       </typeahead-list-item>
+      <div v-if="$slots.listAppend" class="p-2 border-bottom">
+        <slot name="listAppend"></slot>
+      </div>
     </div>
   </div>
 
@@ -215,7 +218,7 @@ export default {
 
     handleBlur(evt) {
       const tgt = evt.relatedTarget;
-      if (tgt && tgt.classList.contains('vbst-item')) {
+      if (tgt && (this.$refs.list.$el.contains(tgt) || tgt.classList.contains('vbst-item'))) {
         return;
       }
       this.isFocused = false;
@@ -270,6 +273,9 @@ export default {
 </script>
 
 <style scoped>
+  .typeahead {
+    text-align: left;
+  }
   .typeahead-list {
     background: white;
     padding-top: 5px;
