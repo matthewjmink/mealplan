@@ -43,5 +43,13 @@ export default new Vuex.Store({
     }),
 
     addPlanRecipe: firestoreAction((context, planRecipe) => db.collection('plan-recipes').add(excludeId(planRecipe))),
+
+    updateRecipe: firestoreAction((context, { recipe }) => {
+      const batch = db.batch();
+      const recipeDocRef = db.collection('recipes').doc(recipe.id);
+      batch.update(recipeDocRef, excludeId(recipe));
+      // TODO: Need to save ingredient updates here
+      return batch.commit();
+    }),
   },
 });

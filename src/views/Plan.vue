@@ -1,12 +1,15 @@
 <template>
   <div>
     <div class="mb-5">
-      <button class="btn btn-outline-secondary" @click="previousWeek"><chevron-left-icon class="icon" /></button>
-      <h2 class="mb-0 mx-3 d-inline-block week-name">Week of {{ weekStartString }}</h2>
-      <button class="btn btn-outline-secondary" @click="nextWeek"><chevron-right-icon class="icon" /></button>
+      <h2 class="mb-2">Week of {{ weekStartString }}</h2>
+      <div class="btn-group">
+        <button class="btn btn-outline-secondary" @click="previousWeek"><chevron-left-icon class="icon" /></button>
+        <button class="btn btn-outline-secondary font-weight-bold" :disabled="isToday" @click="today">Today</button>
+        <button class="btn btn-outline-secondary" @click="nextWeek"><chevron-right-icon class="icon" /></button>
+      </div>
     </div>
     <div class="mb-4" v-for="(day, index) in days" :key="`dayIndex${index}`">
-      <h3 class="plan-day-name text-white px-3 py-1">{{ day }}</h3>
+      <h3 class="section-label">{{ day }}</h3>
       <div class="pl-4 py-3">
         <div class="row">
           <div v-for="recipe in recipesByDay[index]"
@@ -20,13 +23,7 @@
                     <trash-icon class="font-size-lg icon"/>
                   </button>
                   <router-link class="btn btn-primary ml-auto" :to="`/recipe/${recipe.recipe}`">view recipe</router-link>
-                  <!-- TODO: enable servings multiplier -->
-                  <!-- <div class="text-nowrap ml-auto mr-2">Servings:</div>
-                  <select class="form-control w-auto d-inline-block">
-                    <option value="1">&times;1</option>
-                    <option value="2">&times;2</option>
-                    <option value="3">&times;3</option>
-                  </select> -->
+                  <!-- TODO: servings multiplier -->
                 </div>
               </div>
             </div>
@@ -71,7 +68,7 @@ import Typeahead from '@/components/typeahead/Typeahead.vue';
 const planRecipesRef = db.collection('plan-recipes');
 
 function getSunday(dateValue = new Date()) {
-  const d = new Date(dateValue);
+  const d = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate());
   return new Date(d.setDate(d.getDate() - d.getDay()));
 }
 function leadingZero(n) {
@@ -102,6 +99,9 @@ export default {
     };
   },
   computed: {
+    isToday() {
+      return this.weekStart.getTime() === getSunday().getTime();
+    },
     recipes() {
       return this.$store.state.recipes;
     },
@@ -117,11 +117,17 @@ export default {
     },
   },
   methods: {
+    setWeekStart(date) {
+      this.weekStart = date;
+      this.bindPlanRecipes();
+    },
     jumpWeeks(weeks = 1) {
       const d = new Date(this.weekStart);
       d.setDate(d.getDate() + (7 * weeks));
-      this.weekStart = d;
-      this.bindPlanRecipes();
+      this.setWeekStart(d);
+    },
+    today() {
+      this.setWeekStart(getSunday());
     },
     nextWeek() {
       this.jumpWeeks(1);
@@ -172,18 +178,6 @@ export default {
 @import '~@/scss/config';
 @import '~bootstrap/scss/variables';
 
-.week-name {
-  vertical-align: middle;
-  line-height: 1;
-}
-.plan-day-name {
-  font-size: 1.25rem;
-  font-weight: 300;
-  border-radius: 8px 0 8px 0;
-  // border-radius: 0 8px 0 8px;
-  background-color: $secondary;
-  display: inline-block;
-}
 .add-recipe-card:not(.adding) {
   opacity: .8;
 }

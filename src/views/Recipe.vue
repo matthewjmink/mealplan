@@ -1,30 +1,74 @@
 <template>
-  <div>
-    <h1>{{ recipe.name }}</h1>
-    <h2>Ingredients</h2>
-    <ul class="ingredient-list">
-        <li v-for="ingredient in selectedIngredients" :key="ingredient.id">
-            {{ ingredient.quantity }} {{ measureAbbr(ingredient.measure, ingredient.quantity) }} {{ ingredient.name }}
-        </li>
-    </ul>
-    <h2>Directions</h2>
-    <div v-html="recipe.directions"></div>
-  </div>
+  <article>
+    <header class="mb-4">
+      <h1 class="d-inline-block">{{ recipe.name }}</h1>
+      <br class="d-sm-none">
+      <button class="btn btn-sm btn-link ml-sm-3" @click="isEditingRecipe = true"><edit-icon class="icon" /> edit</button>
+      <button class="btn btn-sm btn-link ml-2"><print-icon class="icon" /> print</button>
+      <!-- TODO: Print view -->
+    </header>
+
+    <section id="ingredients" class="mb-5">
+      <h2 class="section-label">Ingredients</h2>
+      <ul class="ingredient-list">
+          <li v-for="ingredient in selectedIngredients" :key="ingredient.id">
+              {{ ingredient.quantity }} {{ measureAbbr(ingredient.measure, ingredient.quantity) }} {{ ingredient.name }}
+          </li>
+      </ul>
+    </section>
+
+    <section id="directions" class="mb-5">
+      <h2 class="section-label">Directions</h2>
+      <div class="p-list description-list" v-html="recipe.directions"></div>
+    </section>
+
+    <section id="reference" class="mb-5" v-if="recipe.refName && recipe.refPage">
+      <h2 class="section-label bg-gray">Source</h2>
+      <div>
+        <span class="font-italic text-large">{{ recipe.refName }}</span>
+        <a v-if="recipe.refType === 'Website'" :href="recipe.refPage" class="ml-3"><external-link-icon class="icon" /> visit</a>
+        <span v-else class="small">, p {{ recipe.refPage }}</span>
+      </div>
+    </section>
+
+    <modal size="xl" v-if="isEditingRecipe" @close="isEditingRecipe = false">
+      <div slot="title">Edit {{ recipe.name }}</div>
+
+      <recipe-form :recipe="recipe"
+          :ingredients="ingredients"
+          @submit="updateRecipe"
+          ref="recipeForm"
+          btn-class="d-none" />
+
+      <div slot="footer">
+        <button class="btn btn-outline-secondary mr-2" @click="isEditingRecipe = false;">Close</button>
+        <button class="btn btn-primary" @click="submitRecipeForm">Save Recipe</button>
+      </div>
+    </modal>
+
+  </article>
 </template>
 
 <script>
-// import RecipeForm from '@/components/RecipeForm.vue';
+import ExternalLinkIcon from 'feather-icons/dist/icons/external-link.svg';
+import EditIcon from 'feather-icons/dist/icons/edit-2.svg';
+import PrintIcon from 'feather-icons/dist/icons/printer.svg';
+import RecipeForm from '@/components/RecipeForm.vue';
+import Modal from '@/components/Modal.vue';
 import { db } from '@/db';
 import measuresMixin from '@/mixins/measures';
 
 export default {
   name: 'Recipe',
-  // components: { RecipeForm },
+  components: {
+    EditIcon, ExternalLinkIcon, Modal, PrintIcon, RecipeForm,
+  },
   mixins: [measuresMixin],
   data() {
     return {
       recipe: {},
       ingredients: [],
+      isEditingRecipe: false,
     };
   },
   computed: {
@@ -36,28 +80,46 @@ export default {
     },
   },
   methods: {
-    save(recipe) {
-      return this.$store.dispatch('editRecipe', recipe);
+    async updateRecipe({ recipe, ingredients }) {
+      await this.$store.dispatch('updateRecipe', { recipe, ingredients });
+      this.isEditingRecipe = false;
+    },
+    submitRecipeForm() {
+      this.$refs.recipeForm.saveRecipe();
     },
   },
   created() {
     const recipeId = this.$route.params.id;
-    db.collection('recipes')
-      .doc(recipeId)
-      .onSnapshot((recipe) => {
-        this.recipe = recipe.data();
+
+    this.recipeRef = db.collection('recipes').doc(recipeId);
+    this.ingredientsRef = db.collection(`recipes/${recipeId}/ingredients`);
+
+    this.recipeRef.onSnapshot((recipe) => {
+      this.recipe = { id: recipeId, ...recipe.data() };
+    });
+
+    this.ingredientsRef.onSnapshot((ingredientCollection) => {
+      this.ingredients = ingredientCollection.docs.map((snapshot) => {
+        const { ingredient: ingredientRef, measure, quantity } = snapshot.data();
+        return {
+          ingredient: ingredientRef.id,
+          measure,
+          quantity,
+        };
       });
-    db.collection(`recipes/${recipeId}/ingredients`)
-      .onSnapshot((ingredientCollection) => {
-        this.ingredients = ingredientCollection.docs.map((snapshot) => {
-          const { ingredient: ingredientRef, measure, quantity } = snapshot.data();
-          return {
-            ingredient: ingredientRef.id,
-            measure,
-            quantity,
-          };
-        });
-      });
+    });
   },
 };
 </script>
+
+<style lang="scss" scoped>
+@import '~@/scss/config';
+@import '~@/scss/mixins';
+
+.description-list {
+  ::v-deep p {
+    margin-bottom: .75rem;
+  }
+}
+
+</style>

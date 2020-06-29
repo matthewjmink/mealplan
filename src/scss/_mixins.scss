@@ -1,9 +1,11 @@
 @mixin p-list {
+  $padding-left: 2.5rem;
+
   counter-reset: directions-counter;
-  
+
   p {
     position: relative;
-    padding-left: 20px;
+    padding-left: $padding-left;
   }
 
   p::before {
@@ -13,5 +15,8 @@
     position: absolute;
     top: 0;
     left: 0;
+    width: $padding-left;
+    padding-right: .75rem;
+    text-align: right;
   }
 }

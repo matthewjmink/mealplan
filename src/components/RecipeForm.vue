@@ -1,8 +1,7 @@
 <template>
   <form @submit.prevent="saveRecipe">
-    <h2>{{ recipe && recipe.id ? 'Edit' : 'New' }} Recipe</h2>
     <div class="row">
-      <div class="col-sm-6 mb-3">
+      <div class="col-md-6 mb-3">
         <div class="form-group">
           <label for="recipeName">Recipe Name</label>
           <input v-model="localRecipe.name"
@@ -24,7 +23,7 @@
                   <label class="font-size-sm form-text text-muted mb-0">Quantity</label>
                 </div>
                 <div class="mb-1 mr-3">
-                  <select class="form-control form-control-sm" v-model="localIngredients[index].measure">
+                  <select class="custom-select custom-select-sm" v-model="localIngredients[index].measure">
                     <option v-for="(measure, key) in measures" :value="key" :key="key">
                         {{ measureAbbr(key, localIngredients[index].quantity) }}
                     </option>
@@ -34,7 +33,7 @@
                 <strong>{{ ingredient.name }}</strong>
               </div>
             </li>
-            <li>
+            <li class="new-ingredient">
               <typeahead v-model="ingredientSearch"
                   placeholder="Search for an ingredient..."
                   ref="typeahead"
@@ -55,21 +54,31 @@
           <label>Directions</label>
           <editor-content class="rich-text" :editor="editor" />
         </div>
-        <button class="btn btn-primary d-none d-sm-inline-block">Save Recipe</button>
       </div>
       <!-- Reference Info -->
-      <div class="col-sm-6 mb-3">
+      <div class="col-md-6 mb-3">
         <fieldset>
-          <legend>Reference Info (optional)</legend>
+          <legend>Reference Info <span class="small text-sm font-italic text-white-50">optional</span></legend>
           <div class="form-group">
             <label for="sourceType">Source Type</label>
-            <select v-model="localRecipe.refType"
-                class="form-control"
-                id="sourceType">
-              <option value=""></option>
-              <option value="Book">Book</option>
-              <option value="Website">Website</option>
-            </select>
+            <div class="custom-control custom-radio">
+              <input class="custom-control-input"
+                  type="radio"
+                  name="sourceType"
+                  id="sourceTypeBook"
+                  v-model="localRecipe.refType"
+                  value="Book" />
+              <label class="custom-control-label" for="sourceTypeBook">Book</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input class="custom-control-input"
+                  type="radio"
+                  name="sourceType"
+                  id="sourceTypeWebsite"
+                  v-model="localRecipe.refType"
+                  value="Website" />
+              <label class="custom-control-label" for="sourceTypeWebsite">Website</label>
+            </div>
           </div>
           <div class="form-group">
             <label for="sourceName">Source Name</label>
@@ -90,7 +99,7 @@
         </fieldset>
       </div>
     </div>
-    <button class="btn btn-primary d-sm-none">Save Recipe</button>
+    <button type="submit" :class="['btn btn-primary', btnClass]">Save Recipe</button>
   </form>
 </template>
 
@@ -114,6 +123,10 @@ export default {
       default() {
         return [];
       },
+    },
+    btnClass: {
+      type: [String, Object],
+      required: false,
     },
   },
   components: { Typeahead, EditorContent },
@@ -157,7 +170,7 @@ export default {
     saveRecipe() {
       this.$emit('submit', {
         recipe: { ...this.localRecipe },
-        ingredients: this.localIngredients.slice(),
+        ingredients: this.localIngredients.map(ingredient => Object.assign({}, ingredient)),
       });
     },
     async selectIngredient({ id }) {
@@ -174,11 +187,26 @@ export default {
       this.selectIngredient(this.$store.state.ingredients.find(({ id }) => id === ingredient.id));
     },
   },
-  created() {
-    Object.assign(this, this.recipe);
-    this.localIngredients = this.ingredients.slice();
+  watch: {
+    ingredients: {
+      immediate: true,
+      handler(ingredients) {
+        if (!ingredients) {
+          this.localIngredients = [];
+          return;
+        }
+        this.localIngredients = ingredients.map(ingredient => Object.assign({}, ingredient));
+      },
+    },
+    recipe: {
+      immediate: true,
+      handler(recipe) {
+        Object.assign(this.localRecipe, recipe);
+        this.editor.setContent(this.localRecipe.directions);
+      },
+    },
   },
-  beforeDestroy() {
+  destroyed() {
     this.editor.destroy();
   },
 };
@@ -188,6 +216,9 @@ export default {
 @import '~@/scss/config';
 @import '~@/scss/mixins';
 
+.new-ingredient:not(:first-child) {
+  margin-top: map-get($spacers, 3);
+}
 .quantity-input {
   width: 75px;
 }
@@ -206,7 +237,7 @@ export default {
   overflow-y: auto;
   resize: vertical;
   min-height: 128px;
-  padding: $input-padding-y $input-padding-x;
+  padding: $textarea-padding-y $input-padding-x;
   font-family: $input-font-family;
   @include font-size($input-font-size);
   font-weight: $input-font-weight;
