@@ -22,6 +22,7 @@
     <div class="container py-5">
       <router-view/>
     </div>
+    <loading />
   </div>
 </template>
 

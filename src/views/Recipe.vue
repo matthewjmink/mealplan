@@ -1,7 +1,7 @@
 <template>
   <article>
     <header class="mb-4">
-      <h1 class="d-inline-block">{{ recipe.name }}</h1>
+      <h2 class="d-inline-block">{{ recipe.name }}</h2>
       <br class="d-sm-none">
       <button class="btn btn-sm btn-link ml-sm-3" @click="isEditingRecipe = true"><edit-icon class="icon" /> edit</button>
       <button class="btn btn-sm btn-link ml-2"><print-icon class="icon" /> print</button>
@@ -31,14 +31,14 @@
       </div>
     </section>
 
-    <modal size="xl" v-if="isEditingRecipe" @close="isEditingRecipe = false">
+    <modal size="xl" v-show="isEditingRecipe" @close="isEditingRecipe = false">
       <div slot="title">Edit {{ recipe.name }}</div>
 
       <recipe-form :recipe="recipe"
           :ingredients="ingredients"
           @submit="updateRecipe"
-          ref="recipeForm"
-          btn-class="d-none" />
+          btn-class="d-none"
+          ref="recipeForm" />
 
       <div slot="footer">
         <button class="btn btn-outline-secondary mr-2" @click="isEditingRecipe = false;">Close</button>
@@ -56,6 +56,7 @@ import PrintIcon from 'feather-icons/dist/icons/printer.svg';
 import RecipeForm from '@/components/RecipeForm.vue';
 import Modal from '@/components/Modal.vue';
 import { db } from '@/db';
+import { excludeId } from '@/utils';
 import measuresMixin from '@/mixins/measures';
 
 export default {
@@ -81,8 +82,20 @@ export default {
   },
   methods: {
     async updateRecipe({ recipe, ingredients }) {
-      await this.$store.dispatch('updateRecipe', { recipe, ingredients });
+      const loading = this.$loading('Saving recipe...');
+      const batch = db.batch();
+      batch.update(this.recipeRef, excludeId(recipe));
+      ingredients.forEach((ingredient) => {
+        const { id, ingredient: ingredientId, ...recipeIngredient } = ingredient;
+        const recipeIngredientDoc = id ? this.ingredientsRef.doc(id) : this.ingredientsRef.doc();
+        batch.set(recipeIngredientDoc, {
+          ...recipeIngredient,
+          ingredient: db.collection('ingredients').doc(ingredientId),
+        });
+      });
+      await batch.commit();
       this.isEditingRecipe = false;
+      loading.remove();
     },
     submitRecipeForm() {
       this.$refs.recipeForm.saveRecipe();
@@ -102,6 +115,7 @@ export default {
       this.ingredients = ingredientCollection.docs.map((snapshot) => {
         const { ingredient: ingredientRef, measure, quantity } = snapshot.data();
         return {
+          id: snapshot.id,
           ingredient: ingredientRef.id,
           measure,
           quantity,

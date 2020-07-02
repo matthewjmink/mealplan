@@ -18,7 +18,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "tiptap": "^1.25.0",
     "tiptap-extensions": "^1.27.0",
-    "vue": "^2.6.10",
+    "vue": "^2.6.11",
     "vue-bootstrap-typeahead": "^0.2.6",
     "vue-router": "^3.0.3",
     "vue-svg-loader": "^0.12.0",
@@ -41,7 +41,7 @@
     "lint-staged": "^8.1.5",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.1.0",
-    "vue-template-compiler": "^2.6.10"
+    "vue-template-compiler": "^2.6.11"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"

@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h1>Recipes <button class="btn btn-sm btn-primary" type="button" @click="isAddingRecipe = true" >New Recipe</button></h1>
+    <h2 class="mb-3">Recipes <button class="btn btn-sm btn-primary" type="button" @click="isAddingRecipe = true" >New Recipe</button></h2>
     <div class="row">
       <div v-for="recipe in recipes"
           :key="recipe.id"
-          class="col-md-4">
+          class="col-md-4 mb-4">
         <router-link :to="{ name: 'recipe', params: { id: recipe.id } }" class="card">
           <div class="card-body">
             <h5 class="card-title">{{ recipe.name }}</h5>
@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <modal size="xl" v-if="isAddingRecipe" @close="isAddingRecipe = false">
+    <modal size="xl" v-show="isAddingRecipe" @close="isAddingRecipe = false">
       <div slot="title">New Recipe</div>
 
       <recipe-form @submit="addRecipe"
@@ -46,8 +46,9 @@ export default {
     },
   },
   methods: {
-    addRecipe({ recipe, ingredients }) {
-      return this.$store.dispatch('addRecipe', { recipe, ingredients });
+    async addRecipe({ recipe, ingredients }) {
+      await this.$store.dispatch('addRecipe', { recipe, ingredients });
+      this.isAddingRecipe = false;
     },
     submitRecipeForm() {
       this.$refs.recipeForm.saveRecipe();

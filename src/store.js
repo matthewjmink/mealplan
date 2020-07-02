@@ -2,13 +2,9 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import { vuexfireMutations, firestoreAction } from 'vuexfire';
 import { db } from './db';
+import { excludeId } from './utils';
 
 Vue.use(Vuex);
-
-const excludeId = function stripIdParamFromObject(obj) {
-  const { id, ...newObj } = obj;
-  return newObj;
-};
 
 export default new Vuex.Store({
   state: {
